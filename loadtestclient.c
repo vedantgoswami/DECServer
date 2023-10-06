@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
     //     exit(1);
     // }
     double total_time = 0;
+    struct timeval start,end;
     for(int iter = 0;iter<loopNum;iter++){
-        struct timeval start,end;
         int c_file_fd = open(strdup(argv[2]),O_RDONLY);
         if(c_file_fd<0){
             printf("Unable to open %s\n",argv[2]);
@@ -87,13 +87,13 @@ int main(int argc, char *argv[])
         while((n_reads = read(c_file_fd,buffer,sizeof buffer))>0){
             //int n_reads = read(c_file_fd,buffer,sizeof buffer);
             total+=n_reads;
+            
             if ((numbytes = send(sockfd, buffer, n_reads,0)) == -1) {
                 perror("client: sendto");
                 exit(1);
             }
             printf("client: sent %d bytes to %s\n", n_reads, argv[1]);
         }
-        gettimeofday(&end,NULL);
         struct sockaddr_storage their_addr;
         socklen_t addr_len;
         char recv_buff[1024];
@@ -107,16 +107,19 @@ int main(int argc, char *argv[])
         printf("%s",recv_buff);
         memset(recv_buff,0,sizeof recv_buff);
         double time_taken;
-        time_taken = (end.tv_sec - start.tv_sec) * 1e6;
-        time_taken = (time_taken + (end.tv_usec -
-                                start.tv_usec)) * 1e-6;
+        // time_taken = (end.tv_sec - start.tv_sec);
+        // time_taken = (time_taken + (end.tv_usec -
+        //                         start.tv_usec)/1000000.0);
+        time_taken=(end.tv_sec - start.tv_sec) + 
+              ((end.tv_usec - start.tv_usec)/1.0e6);
         total_time+=time_taken;
         printf("Time Taken: %f\n\n",time_taken);
         sleep(sleepTime);
-        
+   
    }
     double avg = total_time / (loopNum*1.0);
     printf("Average Response time: %f\n",avg);
+    printf("Throughput: %f",loopNum/total_time);
     send(sockfd, "QUIT", sizeof "QUIT",0);
     close(sockfd);
     return 0;

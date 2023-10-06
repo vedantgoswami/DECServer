@@ -164,7 +164,7 @@ int main(void)
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_len);
         client_id++;
         inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s);
-        printf("server: Got connection from %s\n",s); 
+        printf("server: Got connection from %s:%d\n",s,client_id); 
         
         if (!fork()) { // this is the child process
                 close(sockfd); // child doesn't need the listener
@@ -177,6 +177,7 @@ int main(void)
                 while((numbytes = recv(new_fd, buffer, MAXBUFLEN,MSG_DONTWAIT)) >0) {
                         total+=numbytes;
                     if(numbytes==5){
+                        //printf("server: packet is %d bytes long:%d\n", numbytes,client_id);
                         printf("Client Clossed connection...\n");
                         char cmd[100];
                         memset(cmd,'\0',sizeof cmd);
@@ -194,7 +195,7 @@ int main(void)
                         close(new_fd);
                         exit(0);
                         }
-                    printf("server: got packet from %s\n",inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s));
+                    printf("server: got packet from %s:%d\n",inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s),client_id);
                     printf("server: packet is %d bytes long\n", numbytes);
                     //printf("listener: packet contains \"%s\"\n", buf);
                     
@@ -224,7 +225,7 @@ int main(void)
                         hints.ai_socktype = SOCK_DGRAM;
                         char port[10];
                         sprintf(port,"%d",sin->sin_port);
-                        getaddrinfo(inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s), port, &hints, &client);
+                        //getaddrinfo(inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s), port, &hints, &client);
                         sleep(1);
                         if ((numbytes = send(new_fd, err_buff, n_read,0)) == -1) {
                             perror("server: send");
